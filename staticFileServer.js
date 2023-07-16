@@ -27,5 +27,5 @@ http.createServer(async (request, response) => {
     response.write(error.toString(), 'binary');
     response.end();
   }
-}).listen(parseInt(port, 10));
-log(`static file server running at http://localhost: ${port}`);
+}).listen(parseInt(port));
+log(`static file server running at http://localhost:${port}`);
