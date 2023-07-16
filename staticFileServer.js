@@ -6,7 +6,7 @@ const log = (item) => {
   process.stdout.write(`[${now.getTime()}.${now.getMilliseconds()}]: `);
   console.log(item);
 }
-http.createServer(async (request, response) => {
+http.createServer((request, response) => {
   try {
     const benchmarkStart = new Date();
     const parts = new URL(`http://localhost:${port}${request.url}`).pathname.split('/');
