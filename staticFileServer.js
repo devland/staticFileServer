@@ -4,7 +4,7 @@ const mimes = require('./mimes.js');
 const port = process.argv[2] || 8080;
 const log = (item) => {
   const now = new Date();
-  process.stdout.write(`[${now.getTime()}.${now.getMilliseconds()}]: `);
+  process.stdout.write(`[${now.toISOString()}]: `);
   console.log(item);
 }
 const getMimeType = (extension) => {
