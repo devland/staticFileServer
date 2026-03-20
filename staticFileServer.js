@@ -25,14 +25,15 @@ http.createServer((request, response) => {
         pieces.push(item);
       }
     }
-    const path = pieces.join('/');
+    let path = pieces.join('/');
     const extension = '.' + pieces.pop().split('.').pop();
     let result;
     if (fs.existsSync(config.base + path)) {
       result = fs.readFileSync(config.base + path, 'binary');
     }
     else {
-      result = fs.readFileSync(config.base + config['404'], 'binary');
+      path = config['404'];
+      result = fs.readFileSync(config.base + path, 'binary');
     }
     const headers = {};
     const mimeType = getMimeType(extension);
