@@ -1,12 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const mimes = require('./mimes.js');
-const config = {
-  port: 8080,
-  base: '../',
-  '404': '404.html',
-  ...require(process.argv[2] || './config.js')
-}
+const config = require(process.argv[2] || './config.sample.js');
 const log = (item) => {
   const now = new Date();
   process.stdout.write(`[${now.toISOString()}]: `);
