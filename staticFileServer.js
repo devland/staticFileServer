@@ -18,7 +18,7 @@ const getMimeType = (extension) => {
 http.createServer((request, response) => {
   try {
     const benchmarkStart = new Date();
-    const parts = new URL(`http://localhost:${config.port}${request.url}`).pathname.split('/');
+    const parts = request.url.split('/');
     const pieces = [];
     for (let item of parts) {
       if (item) {
@@ -26,21 +26,25 @@ http.createServer((request, response) => {
       }
     }
     let path = pieces.join('/');
-    const extension = '.' + pieces.pop().split('.').pop();
+    let extension = '.' + pieces.pop().split('.').pop();
     let result;
+    const headers = {};
+    let httpCode = 200;
     if (fs.existsSync(config.base + path)) {
       result = fs.readFileSync(config.base + path, 'binary');
     }
     else {
       path = config['404'];
       result = fs.readFileSync(config.base + path, 'binary');
+      extension = '.' + config['404'].split('/').pop().split('.').pop();
+      headers['Location'] = '/404.html';
+      httpCode = 301;
     }
-    const headers = {};
     const mimeType = getMimeType(extension);
     if (mimeType) {
       headers['Content-Type'] = mimeType;
     }
-    response.writeHead(200, headers);
+    response.writeHead(httpCode, headers);
     response.write(result, 'binary');
     response.end();
     const benchmarkEnd = new Date();
