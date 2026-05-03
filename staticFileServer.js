@@ -1,14 +1,19 @@
 const http = require('http');
 const fs = require('fs');
-const { execSync } = require("child_process");
+const mimes = require('./mimes.js');
 const config = require(process.argv[2] || './config.sample.js');
 const log = (item) => {
   const now = new Date();
   process.stdout.write(`[${now.toISOString()}]: `);
   console.log(item);
 }
-const getMimeType = (path) => {
-  return execSync(`mimetype -b ${path}`).toString().replace('\n', '');
+const getMimeType = (extension) => {
+  for (let item of mimes) {
+    if (item.extensions.includes(extension)) {
+      return item.type;
+    }
+  }
+  return null;
 }
 http.createServer((request, response) => {
   try {
@@ -20,26 +25,22 @@ http.createServer((request, response) => {
         pieces.push(item);
       }
     }
-    let path = config.base + pieces.join('/');
+    let path = pieces.join('/');
+    let extension = '.' + pieces.pop().split('.').pop();
     let result;
     const headers = {};
     let httpCode = 200;
-    if (fs.existsSync(path)) {
-      result = fs.readFileSync(path, 'binary');
+    if (fs.existsSync(config.base + path)) {
+      result = fs.readFileSync(config.base + path, 'binary');
     }
     else {
-      log(`${path} not found`);
-      path = config.base + config['404'];
-      if (fs.existsSync(path)) {
-        result = fs.readFileSync(path, 'binary');
-        headers['Location'] = '/404.html';
-        httpCode = 301;
-      }
-      else {
-        throw '404_file_not_found';
-      }
+      path = config['404'];
+      result = fs.readFileSync(config.base + path, 'binary');
+      extension = '.' + config['404'].split('/').pop().split('.').pop();
+      headers['Location'] = '/404.html';
+      httpCode = 301;
     }
-    const mimeType = getMimeType(path);
+    const mimeType = getMimeType(extension);
     if (mimeType) {
       headers['Content-Type'] = mimeType;
     }
