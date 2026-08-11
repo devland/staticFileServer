@@ -1,0 +1,27 @@
+{
+  "name": "staticFileServer",
+  "version": "1.1.0",
+  "description": "A simple, no dependency static file server that runs on NodeJS.",
+  "keywords": [
+    "http",
+    "https",
+    "static",
+    "file",
+    "server"
+  ],
+  "homepage": "https://github.com/devland/staticFileServer#readme",
+  "bugs": {
+    "url": "https://github.com/devland/staticFileServer/issues"
+  },
+  "repository": {
+    "url": "git+https://github.com/devland/staticFileServer.git",
+    "type": "git"
+  },
+  "license": "GPL-3.0-or-later",
+  "author": "Andrei Busuioc <adevland@gmail.com> (https://github.com/devland)",
+  "type": "commonjs",
+  "main": "staticFileServer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
