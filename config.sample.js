@@ -8,5 +8,5 @@ module.exports = {
     key: './keys/privatekey.pem',
     cert: './keys/certificate.pem'
   },
-  '404': '404.html' // file to serve in case of a 404 error; file must be located in the base folder
+  '404': '404.html' // file to serve in case of a 404 error; file must be located in the base/<request.headers.host> folder
 }
