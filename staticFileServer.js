@@ -39,7 +39,7 @@ const handleRequest = (request, response) => {
     const benchmarkStart = new Date();
     const url = new URL(`http://localhost/${request.url}`);
     filePath = path.join(config.base, request.headers.host, url.pathname);
-    const extension = getExtension(url.pathname);
+    let extension = getExtension(url.pathname);
     let result;
     const headers = {};
     let httpCode = 200;
