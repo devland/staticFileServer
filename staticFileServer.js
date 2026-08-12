@@ -31,28 +31,41 @@ const getExtension = (path) => {
       pieces.push(item);
     }
   }
+  if (!pieces.length) {
+    return null;
+  }
   return '.' + pieces.pop().split('.').pop();
 }
 const handleRequest = (request, response) => {
   let filePath;
   try {
     const benchmarkStart = new Date();
-    const url = new URL(`http://localhost/${request.url}`);
-    filePath = path.join(config.base, request.headers.host, url.pathname);
-    let extension = getExtension(url.pathname);
+    let url = new URL(path.join('http://localhost', request.url));
+    let extension;
     let result;
-    const headers = {};
-    let httpCode = 200;
+    let headers = {};
+    filePath = path.join(config.base, request.headers.host, url.pathname);
+    let httpCode;
     if (fs.existsSync(filePath)) {
-      result = fs.readFileSync(filePath, 'binary');
+      let stats = fs.statSync(filePath);
+      if (stats.isDirectory()) {
+        url = new URL(path.join(url.href, config.index));
+        headers['Location'] = url.pathname;
+        httpCode = 301;
+        result = '';
+      }
+      else {
+        extension = getExtension(url.pathname);
+        httpCode = 200;
+        result = fs.readFileSync(filePath, 'binary');
+      }
     }
     else {
-      log('[404] ' + filePath);
-      filePath = path.join(config.base, request.headers.host, config['404']);
-      result = fs.readFileSync(filePath, 'binary');
+      url = new URL(path.join(url.origin, config['404']));
       extension = '.' + config['404'].split('/').pop().split('.').pop();
-      headers['Location'] = '/404.html';
+      headers['Location'] = url.pathname;
       httpCode = 301;
+      result = '';
     }
     const mimeType = getMimeType(extension);
     if (mimeType) {
@@ -62,7 +75,7 @@ const handleRequest = (request, response) => {
     response.write(result, 'binary');
     response.end();
     const benchmarkEnd = new Date();
-    log(`${filePath} (${(benchmarkEnd - benchmarkStart)} ms)`);
+    log(`${filePath} [${httpCode}] (${(benchmarkEnd - benchmarkStart)} ms)`);
   }
   catch (error) {
     log(filePath, error);
