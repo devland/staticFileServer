@@ -1,6 +1,6 @@
 {
   "name": "js-file-server",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A simple, no dependency static file server that runs on NodeJS.",
   "keywords": [
     "http",
