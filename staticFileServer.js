@@ -40,10 +40,14 @@ const handleRequest = (request, response) => {
   let filePath;
   try {
     const benchmarkStart = new Date();
+    if (!request.url || !request.headers.host) {
+      log('[nope] wrong request');
+    }
     let url = new URL(path.join('http://localhost', request.url));
     let extension;
     let result;
     let headers = {};
+    const fourOhFourPath = path.join(config.base, request.headers.host, config['404']);
     filePath = path.join(config.base, request.headers.host, url.pathname);
     let httpCode;
     if (fs.existsSync(filePath)) {
@@ -60,12 +64,16 @@ const handleRequest = (request, response) => {
         result = fs.readFileSync(filePath, 'binary');
       }
     }
-    else {
+    else if (fs.existsSync(fourOhFourPath)) {
       url = new URL(path.join(url.origin, config['404']));
       extension = '.' + config['404'].split('/').pop().split('.').pop();
       headers['Location'] = url.pathname;
       httpCode = 301;
       result = '';
+    }
+    else {
+      httpCode = 404;
+      result = 'nope :(';
     }
     const mimeType = getMimeType(extension);
     if (mimeType) {
@@ -78,9 +86,9 @@ const handleRequest = (request, response) => {
     log(`${filePath} [${httpCode}] (${(benchmarkEnd - benchmarkStart)} ms)`);
   }
   catch (error) {
-    log(filePath, error);
+    log('[error]', filePath, error);
     response.writeHead(500);
-    response.write(error.toString(), 'binary');
+    response.write(error.message, 'binary');
     response.end();
   }
 }
