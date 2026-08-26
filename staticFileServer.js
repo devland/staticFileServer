@@ -5,8 +5,8 @@ const fs = require('fs');
 const mimes = require('./mimes.js');
 const config = require(process.argv[2] || './config.sample.js');
 const options = {
-  key: fs.readFileSync(config.https.key),
-  cert: fs.readFileSync(config.https.cert)
+  key: config.https.key ? fs.readFileSync(config.https.key) : null,
+  cert: config.https.cert ? fs.readFileSync(config.https.cert) : null
 }
 const log = function () {
   const now = new Date();
@@ -39,9 +39,11 @@ const getExtension = (path) => {
 const handleRequest = (request, response) => {
   let filePath;
   try {
-    const benchmarkStart = new Date();
+    const benchmarkStart = performance.now();
     if (!request.url || !request.headers.host) {
       log('[nope] wrong request');
+      response.end();
+      return;
     }
     let url = new URL(path.join('http://localhost', request.url));
     let extension;
@@ -66,7 +68,7 @@ const handleRequest = (request, response) => {
     }
     else if (fs.existsSync(fourOhFourPath)) {
       url = new URL(path.join(url.origin, config['404']));
-      extension = '.' + config['404'].split('/').pop().split('.').pop();
+      extension = getExtension(url.pathname);
       headers['Location'] = url.pathname;
       httpCode = 301;
       result = '';
@@ -82,19 +84,20 @@ const handleRequest = (request, response) => {
     response.writeHead(httpCode, headers);
     response.write(result, 'binary');
     response.end();
-    const benchmarkEnd = new Date();
+    const benchmarkEnd = performance.now();
     log(`${filePath} [${httpCode}] (${(benchmarkEnd - benchmarkStart)} ms)`);
   }
   catch (error) {
-    log('[error]', filePath, error);
     response.writeHead(500);
     response.write(error.message, 'binary');
     response.end();
+    const benchmarkEnd = performance.now();
+    log(`[error] ${filePath} (${(benchmarkEnd - benchmarkStart)} ms)`, error);
   }
 }
 http.createServer(handleRequest).listen(parseInt(config.ports.http));
 log(`static file server running at http://localhost:${config.ports.http}`);
-if (fs.existsSync(config.https.key) && fs.existsSync(config.https.cert)) {
+if (options.key && options.cert) {
   https.createServer(options, handleRequest).listen(parseInt(config.ports.https));
   log(`and at https://localhost:${config.ports.https}`);
 }
