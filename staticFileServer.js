@@ -84,15 +84,15 @@ const handleRequest = (request, response) => {
     response.writeHead(httpCode, headers);
     response.write(result, 'binary');
     response.end();
-    const benchmarkEnd = performance.now();
-    log(`${filePath} [${httpCode}] (${(benchmarkEnd - benchmarkStart)} ms)`);
+    const benchmarkTime = (performance.now() - benchmarkStart).toFixed(3);
+    log(`${filePath} [${httpCode}] (ip ${request.socket.remoteAddress}, ${benchmarkTime} ms)`);
   }
   catch (error) {
     response.writeHead(500);
     response.write(error.message, 'binary');
     response.end();
-    const benchmarkEnd = performance.now();
-    log(`[error] ${filePath} (${(benchmarkEnd - benchmarkStart)} ms)`, error);
+    const benchmarkTime = (performance.now() - benchmarkStart).toFixed(3);
+    log(`[error] ${filePath} (ip ${request.socket.remoteAddress}, ${benchmarkTime} ms)`, error);
   }
 }
 http.createServer(handleRequest).listen(parseInt(config.ports.http));
