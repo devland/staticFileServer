@@ -38,8 +38,8 @@ const getExtension = (path) => {
 }
 const handleRequest = (request, response) => {
   let filePath;
+  const benchmarkStart = performance.now();
   try {
-    const benchmarkStart = performance.now();
     if (!request.url || !request.headers.host) {
       log('[nope] wrong request');
       response.end();
