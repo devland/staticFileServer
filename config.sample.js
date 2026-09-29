@@ -9,5 +9,6 @@ module.exports = {
     cert: './keys/certificate.pem'
   },
   index: 'index.html',
-  '404': '404.html' // file to serve in case of a 404 error; file must be located in the base/<request.headers.host> folder
+  '404': '404.html', // file to serve in case of a 404 error; file must be located in the base/<request.headers.host> folder
+  ignore: /(.*?)\.git(.*?)/gm // regex to ignore files and folders
 }

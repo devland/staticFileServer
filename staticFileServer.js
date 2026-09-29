@@ -40,25 +40,38 @@ const handleRequest = (request, response) => {
   let filePath;
   const benchmarkStart = performance.now();
   try {
-    if (!request.url || !request.headers.host) {
-      log('[nope] wrong request');
+    let httpCode;
+    let extension;
+    let result = '';
+    let headers = {};
+    const end = () => {
+      response.writeHead(httpCode, headers);
+      response.write(result, 'binary');
       response.end();
+    }
+    if (!request.url || !request.headers.host) {
+      log(`[denied] request denied`);
+      httpCode = 500;
+      result = '[denied]';
+      end();
       return;
     }
     let url = new URL(path.join('http://localhost', request.url));
-    let extension;
-    let result;
-    let headers = {};
     const fourOhFourPath = path.join(config.base, request.headers.host, config['404']);
     filePath = path.join(config.base, request.headers.host, url.pathname);
-    let httpCode;
+    if (config.ignore && config.ignore.test(filePath)) {
+      log(`[ignored] ${filePath}`);
+      httpCode = 500;
+      result = '[ignored]';
+      end();
+      return;
+    }
     if (fs.existsSync(filePath)) {
       let stats = fs.statSync(filePath);
       if (stats.isDirectory()) {
         url = new URL(path.join(url.href, config.index));
         headers['Location'] = url.pathname;
         httpCode = 301;
-        result = '';
       }
       else {
         extension = getExtension(url.pathname);
@@ -71,28 +84,26 @@ const handleRequest = (request, response) => {
       extension = getExtension(url.pathname);
       headers['Location'] = url.pathname;
       httpCode = 301;
-      result = '';
     }
     else {
       httpCode = 404;
-      result = 'nope :(';
+      result = '[404]';
     }
     const mimeType = getMimeType(extension);
     if (mimeType) {
       headers['Content-Type'] = mimeType;
     }
-    response.writeHead(httpCode, headers);
-    response.write(result, 'binary');
-    response.end();
+    end();
     const benchmarkTime = (performance.now() - benchmarkStart).toFixed(3);
-    log(`${filePath} [${httpCode}] (ip ${request.socket.remoteAddress}, ${benchmarkTime} ms)`);
+    log(`[${httpCode}] ${filePath} (${benchmarkTime} ms, ${request.socket.remoteAddress})`);
   }
   catch (error) {
-    response.writeHead(500);
-    response.write(error.message, 'binary');
-    response.end();
+    httpCode = 500;
+    result = error.message;
+    headers = {}
+    end();
     const benchmarkTime = (performance.now() - benchmarkStart).toFixed(3);
-    log(`[error] ${filePath} (ip ${request.socket.remoteAddress}, ${benchmarkTime} ms)`, error);
+    log(`[error] ${filePath} (${benchmarkTime} ms, ${request.socket.remoteAddress})`, error);
   }
 }
 http.createServer(handleRequest).listen(parseInt(config.ports.http));
