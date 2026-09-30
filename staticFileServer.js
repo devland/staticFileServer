@@ -37,18 +37,18 @@ const getExtension = (path) => {
   return '.' + pieces.pop().split('.').pop();
 }
 const handleRequest = (request, response) => {
-  let filePath;
   const benchmarkStart = performance.now();
+  let filePath;
+  let httpCode;
+  let extension;
+  let result = '';
+  let headers = {};
+  const end = () => {
+    response.writeHead(httpCode, headers);
+    response.write(result, 'binary');
+    response.end();
+  }
   try {
-    let httpCode;
-    let extension;
-    let result = '';
-    let headers = {};
-    const end = () => {
-      response.writeHead(httpCode, headers);
-      response.write(result, 'binary');
-      response.end();
-    }
     if (!request.url || !request.headers.host) {
       log(`[denied] request denied`);
       httpCode = 500;
